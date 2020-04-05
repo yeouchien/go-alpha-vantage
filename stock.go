@@ -5,7 +5,6 @@ import (
 	"encoding/csv"
 	"io"
 	"strconv"
-	"time"
 
 	"github.com/pkg/errors"
 )
@@ -18,12 +17,12 @@ type StockTimeSeriesIntradayParams struct {
 }
 
 type StockTimeSeriesIntradayOHLC struct {
-	Time   time.Time `json:"time"`
-	Open   float64   `json:"open"`
-	High   float64   `json:"high"`
-	Low    float64   `json:"low"`
-	Close  float64   `json:"close"`
-	Volume float64   `json:"volume"`
+	Time   string  `json:"time"`
+	Open   float64 `json:"open"`
+	High   float64 `json:"high"`
+	Low    float64 `json:"low"`
+	Close  float64 `json:"close"`
+	Volume float64 `json:"volume"`
 }
 
 func (c *Client) StockTimeSeriesIntraday(params *StockTimeSeriesIntradayParams) ([]StockTimeSeriesIntradayOHLC, error) {
@@ -57,10 +56,7 @@ func (c *Client) StockTimeSeriesIntraday(params *StockTimeSeriesIntradayParams) 
 			return nil, err
 		}
 
-		time, err := parseDate(record[0])
-		if err != nil {
-			return nil, errors.Wrap(err, "error parsing time")
-		}
+		time := record[0]
 		open, err := strconv.ParseFloat(record[1], 64)
 		if err != nil {
 			return nil, errors.Wrap(err, "error parsing open")
@@ -94,20 +90,4 @@ func (c *Client) StockTimeSeriesIntraday(params *StockTimeSeriesIntradayParams) 
 	}
 
 	return ohlcs, nil
-}
-
-func parseDate(v string) (time.Time, error) {
-	dateFormats := []string{
-		"2006-01-02",
-		"2006-01-02 15:04:05",
-	}
-	for _, format := range dateFormats {
-		t, err := time.Parse(format, v)
-		if err != nil {
-			continue
-		}
-		return t, nil
-	}
-
-	return time.Time{}, errors.Errorf("error parsing date: %v", v)
 }
